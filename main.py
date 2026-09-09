@@ -1,6 +1,7 @@
 from torchvision import models  , transforms ,datasets ,nn 
 from torch.utils.data import random_split , DataLoader 
-import torch.nn as nn 
+from torch import nn , optim 
+import torch as torch 
 from PIL import Image 
 
 VisionModel  = models.resnet18(weights = models.ResNet18_Weights.DEFAULT ) 
@@ -32,3 +33,29 @@ for parameter in VisionModel.parameters() :
 
 VisionModel.fc = nn.Layer(512,10) 
 
+entropy_loss = nn.CrossEntropyLoss() # entroppy_loss is a callable method now 
+
+
+optimizer = optim.Adam(VisionModel.fc.parameters() , lr=0.001)
+
+num_epochs = 10 
+def training_loop() : 
+    for i in range (0,num_epochs) :
+        for images , labels   in train_loader : 
+            # passing the batch 
+            predictions =VisionModel(images ) # passing a batch to the model 
+            loss = entropy_loss(predictions ,labels )
+            loss.backward()
+            optimizer.step() 
+            loss.zero_grad()
+
+correct = 0  # n of correct images 
+total = 0 # total number of iamges 
+
+VisionModel.eval() # swithces the model to evaluation mode 
+with torch.no_grad():
+    for images , labels in test_loader : 
+        predictions = VisionModel(images) # this returns 32 rows of 10 scores each 
+        _ , predicted_value = torch.max(predictions,1)
+        # the above is a batch operation since we passd 32 images in each batch and 10 values are outputed for each we are asking for 
+        # the top value in each of these 32 lists so we end up with 32 prediction 
