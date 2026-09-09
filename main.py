@@ -21,3 +21,5 @@ EURO_DATA_SET = datasets.EuroSAT(root="EUROSAT" , download=True , transform=tran
 train_set , test_set = random_split(EURO_DATA_SET , [0.8,0.2] )
 
 train_loader = DataLoader(train_set , 50 )  # splits the data set into batches of 50 and loads them 
+test_loader = DataLoader(test_set,32) 
+
