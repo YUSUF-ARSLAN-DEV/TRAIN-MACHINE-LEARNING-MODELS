@@ -54,8 +54,17 @@ total = 0 # total number of iamges
 
 VisionModel.eval() # swithces the model to evaluation mode 
 with torch.no_grad():
-    for images , labels in test_loader : 
+    for images , labels in test_loader :  # - labels have 32 values too 
         predictions = VisionModel(images) # this returns 32 rows of 10 scores each 
-        _ , predicted_value = torch.max(predictions,1)
+        _ , predicted_values = torch.max(predictions,1) # 32 values 
         # the above is a batch operation since we passd 32 images in each batch and 10 values are outputed for each we are asking for 
         # the top value in each of these 32 lists so we end up with 32 prediction 
+        correct += (predicted_values == labels ).sum().item() 
+        total = labels.size(0) # labels is 1d tensor so we want the dimension  of columsn 
+
+
+print(f"The Accuracy of the model is:\n\n {correct/total}* 100")
+
+
+         
+    
