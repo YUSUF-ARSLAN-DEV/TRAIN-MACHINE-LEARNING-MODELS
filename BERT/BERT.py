@@ -1,7 +1,7 @@
 from datasets import load_dataset  , Dataset  
 from BERT_SUPPORT import split_train_val_test ,  extract_and_process_data , create_mapping , TrainingArguments , BERT_TOKENIZER ,collator 
 from transformers import  AutoModelForSequenceClassification   , Trainer 
-
+from config import MODEL_NAME 
 data_set = load_dataset("bitext/Bitext-customer-support-llm-chatbot-training-dataset")
 
 # the data set has 2 dictionary inside 
