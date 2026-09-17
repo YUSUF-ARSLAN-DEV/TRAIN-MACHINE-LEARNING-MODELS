@@ -1,8 +1,8 @@
-from numpy import random 
-from BERT.config import BERT_TOKENIZER
-from BERT.config import split_values
+from numpy import random  
+from config import split_values , BERT_TOKENIZER , collator , MODEL_NAME , NUM_EPOCHS , BATCH_SIZE  , LEARNING_RATE , OUTPUT_DIR
+from transformers import  TrainingArguments , AutoTokenizer , AutoModelForSequenceClassification  , DataCollatorWithPadding 
 
-
+ 
 def split_train_val_test(raw_all,  split_values ):
     # splitting the raw into train , val and test 
     train_percentage = split_values["train"]
@@ -48,3 +48,16 @@ def extract_and_process_data(data ,label_mapping): # Takes this bittext customer
     intent_labels_numerical = [label_mapping[k] for k in list_of_intent_labels_for_extracted_set]
 
     return tokenized_data , intent_labels_numerical , raw_instruction_list 
+
+TrainingArguments = TrainingArguments (
+    output_dir = OUTPUT_DIR , 
+    num_train_epochs = NUM_EPOCHS , 
+    per_device_train_batch_size = BATCH_SIZE, 
+    per_device_eval_batch_size = BATCH_SIZE , 
+    learning_rate = LEARNING_RATE , 
+    eval_strategy = "epoch" , 
+    save_strategy = "epoch", 
+ ) 
+
+BERT_TOKENIZER = AutoTokenizer.from_pretrained("bert-base-uncased")
+collator = DataCollatorWithPadding(tokenizer = BERT_TOKENIZER )  

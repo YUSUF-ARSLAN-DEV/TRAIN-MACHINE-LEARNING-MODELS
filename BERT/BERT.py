@@ -1,7 +1,6 @@
-from datasets import load_dataset  , Dataset
-from transformers import AutoTokenizer , AutoModelForSequenceClassification 
-from BERT.TEXT_ANALYSIS.BERT_SUPPORT import split_train_val_test ,  extract_and_process_data , create_mapping 
-
+from datasets import load_dataset  , Dataset  
+from BERT_SUPPORT import split_train_val_test ,  extract_and_process_data , create_mapping , TrainingArguments , BERT_TOKENIZER ,collator 
+from transformers import  AutoModelForSequenceClassification   , Trainer 
 
 data_set = load_dataset("bitext/Bitext-customer-support-llm-chatbot-training-dataset")
 
@@ -23,3 +22,9 @@ training_ds = Dataset.from_dict(
         "labels" : train_labels 
     }    
 )
+
+
+model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_NAME , 
+    num_labels = len(label_mapping) 
+) 
