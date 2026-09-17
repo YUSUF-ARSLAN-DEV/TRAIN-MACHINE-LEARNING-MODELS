@@ -1,5 +1,5 @@
 from datasets import load_dataset  , Dataset  
-from BERT_SUPPORT import split_train_val_test ,  extract_and_process_data , create_mapping , TrainingArguments , BERT_TOKENIZER ,collator 
+from BERT_SUPPORT import split_train_val_test ,  extract_and_process_data , create_mapping , TrainingArguments , BERT_TOKENIZER ,collator  , compute_metrics
 from transformers import  AutoModelForSequenceClassification   , Trainer 
 from config import MODEL_NAME 
 data_set = load_dataset("bitext/Bitext-customer-support-llm-chatbot-training-dataset")
@@ -23,8 +23,24 @@ training_ds = Dataset.from_dict(
     }    
 )
 
+val_ds = Dataset.from_dict( 
+    "input_ids":val_tokenized["input_id"] , 
+    "attention_mask": val_tokenized["attnetion_mask"] , 
+    "labels" : val_labels 
+)
+
 
 model = AutoModelForSequenceClassification.from_pretrained(
     MODEL_NAME , 
     num_labels = len(label_mapping) 
 ) 
+
+trainer = Trainer (
+    model = model , 
+    args = TrainingArguments , 
+    train_dataset = training_ds , 
+    eval_dataset = val_ds , 
+    data_collator = collator , 
+    compute_metrics = compute_metrics
+) 
+trainer.train() 

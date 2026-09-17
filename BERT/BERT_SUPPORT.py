@@ -1,8 +1,8 @@
 from numpy import random  
 from config import BERT_TOKENIZER , MODEL_NAME , NUM_EPOCHS , BATCH_SIZE  , LEARNING_RATE , OUTPUT_DIR 
 from transformers import  TrainingArguments , AutoTokenizer , AutoModelForSequenceClassification  , DataCollatorWithPadding 
-
- 
+import numpy as np 
+from sklearn.metrics import accuracy_score , f1_score 
 def split_train_val_test(raw_all,  split_values ):
     # splitting the raw into train , val and test 
     train_percentage = split_values["train"]
@@ -61,3 +61,11 @@ TrainingArguments = TrainingArguments (
 
 BERT_TOKENIZER = AutoTokenizer.from_pretrained("bert-base-uncased")
 collator = DataCollatorWithPadding(tokenizer = BERT_TOKENIZER )  
+
+def compute_metrics(evaluation_prediction) :
+    logits ,labels = evaluation_prediction  
+    preds = np.argmax(logits,axis=-1)
+    return {
+        "accuracy":accuracy_score(labels,preds) , # compares the predictions we get 
+        "f1_macro" : f1_score(labels,preds,average="macro") 
+    } 
