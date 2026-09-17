@@ -1,9 +1,9 @@
 from numpy import random 
-from config import BERT_TOKENIZER
+from BERT.config import BERT_TOKENIZER
+from BERT.config import split_values
 
 
-
-def split_train_val(raw_train,  split_values = { "train" : 70  , "val" : 15 , "test" : 15 } ):
+def split_train_val_test(raw_all,  split_values ):
     # splitting the raw into train , val and test 
     train_percentage = split_values["train"]
     val_percentage = split_values["val"]
@@ -11,17 +11,21 @@ def split_train_val(raw_train,  split_values = { "train" : 70  , "val" : 15 , "t
     
     # shuffling the indices list 
     # n of elements 
-    n_elements  = len(raw_train) 
+    n_elements  = len(raw_all) 
     shuffled  = random.permutation(n_elements) # this shuffles the list of indices 
 
     # c here stands for check point 
-    c_train = int(n_elements*train_percentage)
-    c_val   = c_train + int(n_elements*val_percentage)
-    c_test = c_val + int(n_elements*test_percentage)
+    c_train = int(n_elements*(train_percentage/100))
+    c_val   = c_train + int(n_elements*(val_percentage/100))
+  
     train_indices = shuffled[:c_train ]
     val_indices = shuffled[c_train :c_val ]
-    test_indices = shuffled[c_val :c_test -1]
+    test_indices = shuffled[c_val:]
 
+    raw_train = raw_all.select(train_indices)
+    raw_val =  raw_all.select(val_indices)  
+    raw_test = raw_all.select(test_indices)  
+    return raw_train , raw_val , raw_test 
     
 
 def create_mapping(raw_train):
