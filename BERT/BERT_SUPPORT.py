@@ -1,5 +1,5 @@
 from numpy import random  
-from config import BERT_TOKENIZER , MODEL_NAME , NUM_EPOCHS , BATCH_SIZE  , LEARNING_RATE , OUTPUT_DIR 
+from config import  MODEL_NAME , NUM_EPOCHS , BATCH_SIZE  , LEARNING_RATE , OUTPUT_DIR 
 from transformers import  TrainingArguments , AutoTokenizer , AutoModelForSequenceClassification  , DataCollatorWithPadding 
 import numpy as np 
 from sklearn.metrics import accuracy_score , f1_score 

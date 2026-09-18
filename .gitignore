@@ -1,2 +1,4 @@
 EUROSAT/
 venv/
+BERT/__pycache__/
+BERT/bert_intent_model/
