@@ -1,8 +1,12 @@
 from numpy import random  
 from config import  MODEL_NAME , NUM_EPOCHS , BATCH_SIZE  , LEARNING_RATE , OUTPUT_DIR 
-from transformers import  TrainingArguments , AutoTokenizer , AutoModelForSequenceClassification  , DataCollatorWithPadding 
+from transformers import  TrainingArguments , AutoTokenizer , AutoModelForSequenceClassification  , DataCollatorWithPadding ,pipeline
 import numpy as np 
 from sklearn.metrics import accuracy_score , f1_score 
+import re   
+
+
+
 def split_train_val_test(raw_all,  split_values ):
     # splitting the raw into train , val and test 
     train_percentage = split_values["train"]
@@ -26,7 +30,7 @@ def split_train_val_test(raw_all,  split_values ):
     raw_val =  raw_all.select(val_indices)  
     raw_test = raw_all.select(test_indices)  
     return raw_train , raw_val , raw_test 
-    
+  
 
 def create_mapping(raw_train):
     intents_unique = sorted(set(raw_train["intent"])) # in asceing order 
@@ -57,6 +61,7 @@ TrainingArguments = TrainingArguments (
     learning_rate = LEARNING_RATE , 
     eval_strategy = "epoch" , 
     save_strategy = "epoch", 
+    use_cpu = False 
  ) 
 
 BERT_TOKENIZER = AutoTokenizer.from_pretrained("bert-base-uncased")
@@ -69,3 +74,39 @@ def compute_metrics(evaluation_prediction) :
         "accuracy":accuracy_score(labels,preds) , # compares the predictions we get 
         "f1_macro" : f1_score(labels,preds,average="macro") 
     } 
+
+
+def clf_accuracy_test() :
+    test_inputs = [
+    ("my package never showed up and I want my money back", "get_refund"),
+    ("stop sending me emails and delete my account", "delete_account"),
+    ("your service is terrible, connect me to a manager", "contact_human_agent"),
+    ("I was charged twice, fix my billing", "payment_issue"),
+    ("change the address on my order, I moved", "change_shipping_address"),
+    ("I forgot my password and cannot log in", "recover_password"),
+    ("how long until my parcel reaches me", "delivery_period"),
+    ("I want to return this and get my cash back", "get_refund"),
+    ("set up a new delivery address for me", "set_up_shipping_address"),
+    ("I need to speak with a support person", "contact_human_agent"),
+    ] 
+    correct = 0 
+    wrong = 0 
+    confidence = 0 
+    for test in test_inputs  : 
+        clf = pipeline("text-classification" , model = OUTPUT_DIR  , tokenizer = BERT_TOKENIZER , device = 0  ) 
+        user_instruction=test[0]
+        result = clf(user_instruction)
+        print(result)
+        valid   = test[1]==result[0]["label"]
+        confidence += result[0]["score"]
+        if valid  == 1 :
+            correct +=1 
+        else :
+            wrong +=1 
+
+    print(f"This is the model's Real life accuracy:{correct/(correct+wrong)}")
+    print(f"The Average confidence of the model in each prediction is:{confidence/len(test_inputs)}")
+
+def skeleton(s):
+    s = re.sub(r"\{\{.*?\}\}", "", s.lower())
+    return re.sub(r"[^a-z ]", "", s).strip()

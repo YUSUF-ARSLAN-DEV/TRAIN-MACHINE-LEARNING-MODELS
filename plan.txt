@@ -1,0 +1,107 @@
+Fine-Tuning & Transfer Learning — Project Pathway
+
+Goal: Go from "I know what a neural network is" to "I can take a pre-trained model, fine-tune it on custom data, evaluate it properly, and ship it." Every project teaches syntax alongside concepts.
+
+Repo: All projects live in one repo — "TRAIN MACHINE LEARNING MODELS", each project in its own file.
+
+Project 1 — Image Classification with Transfer Learning (PyTorch) ✅
+
+What you built: EuroSAT satellite image classifier using pre-trained ResNet-18. 10 land-use classes, 27k images. 93% accuracy.
+
+File: main.py
+
+Skills unlocked:
+
+PyTorch fundamentals: tensors, datasets, dataloaders, transforms
+Loading pre-trained weights (torchvision.models)
+Freezing/unfreezing layers
+Replacing the classification head
+Training loop from scratch (not just .fit())
+Loss functions (CrossEntropyLoss), optimizers (Adam)
+GPU training with CUDA (device management, pin_memory, num_workers)
+Evaluating with accuracy
+
+Still to explore (extensions):
+
+Confusion matrix + classification report (sklearn)
+Saving/loading checkpoints
+Unfreezing deeper layers for higher accuracy
+Learning rate schedulers
+Data augmentation (random flips, rotations)
+Project 2 — Text Classification with Hugging Face Transformers
+
+What you build: A sentiment analysis / intent classifier by fine-tuning a pre-trained BERT (or DistilBERT) model.
+
+Skills unlocked:
+
+Hugging Face transformers library: tokenizers, models, Trainer API
+Understanding tokenization (WordPiece, BPE)
+Preparing text datasets with datasets library
+Fine-tuning a transformer end-to-end
+Metrics: F1, precision, recall for text tasks
+Hyperparameter search basics
+Weights & Biases (W&B) integration for experiment tracking
+
+Why second: NLP fine-tuning is the bread and butter of modern ML. Hugging Face is the industry standard. This teaches the most transferable skills.
+
+Project 3 — Object Detection Fine-Tuning (YOLO / Faster R-CNN)
+
+What you build: A custom object detector — detect specific objects in images (e.g., safety equipment, products on shelves).
+
+Skills unlocked:
+
+Difference between classification, detection, segmentation
+Annotation formats (COCO, YOLO, Pascal VOC)
+Fine-tuning YOLO (Ultralytics) on a custom dataset
+Data augmentation strategies (Albumentations)
+mAP, IoU, precision-recall curves
+Export to ONNX for deployment
+
+Why third: Detection is where "real-world ML" lives — manufacturing, retail, security. The annotation + training + export pipeline is a core MLOps skill.
+
+Project 4 — LoRA Fine-Tuning a Large Language Model
+
+What you build: Fine-tune a 7B-parameter LLM (e.g., Llama, Mistral) on a custom instruction dataset using LoRA/QLoRA.
+
+Skills unlocked:
+
+Parameter-efficient fine-tuning (PEFT): LoRA, QLoRA
+Quantization (4-bit, 8-bit with bitsandbytes)
+Dataset formatting for instruction tuning (Alpaca, ShareGPT formats)
+Memory management: gradient checkpointing, mixed precision
+peft + trl libraries
+Evaluation: perplexity, human eval, benchmarks
+Merging LoRA adapters back into the base model
+
+Why fourth: This is the hot skill. Every company wants to customize LLMs. But you need Projects 1-2 under your belt first to understand what's happening under the hood.
+
+Project 5 — Multi-Task Fine-Tuning & Model Serving Pipeline
+
+What you build: Fine-tune a model for multiple tasks, package it, serve it behind an API, and monitor its performance.
+
+Skills unlocked:
+
+Multi-task learning and shared representations
+Model packaging (TorchServe, Triton, or BentoML)
+Building a FastAPI serving endpoint
+Containerizing with Docker
+Model versioning (MLflow or DVC)
+A/B testing and canary deployments
+Monitoring: data drift, prediction drift, latency
+CI/CD for ML (GitHub Actions + model registry)
+
+Why last: This ties the ML side to the Ops side. You've trained models — now you ship them. This is what makes you an MLOps engineer, not just an ML engineer.
+
+How We Work Through Each Project
+Concepts first (brief) — what are we doing and why
+Code walkthrough — every line explained, syntax taught explicitly
+You modify it — exercises that force you to change the code
+You debug it — intentionally broken versions to fix
+You extend it — add a feature that requires you to read docs
+Current Progress
+ Pathway created
+ Project 1 — Image Classification with Transfer Learning (93% accuracy) ✅
+ Project 2 — Text Classification with Hugging Face ← NEXT
+ Project 3 — Object Detection Fine-Tuning
+ Project 4 — LoRA Fine-Tuning an LLM
+ Project 5 — Multi-Task Fine-Tuning & Serving Pipeline

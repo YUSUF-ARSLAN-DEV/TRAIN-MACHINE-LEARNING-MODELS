@@ -2,3 +2,9 @@ EUROSAT/
 venv/
 BERT/__pycache__/
 BERT/bert_intent_model/
+__pycache__/
+
+webapp/frontend/node_modules/
+webapp/frontend/dist/
+webapp/backend/__pycache__/
+webapp/backend/app/__pycache__/
