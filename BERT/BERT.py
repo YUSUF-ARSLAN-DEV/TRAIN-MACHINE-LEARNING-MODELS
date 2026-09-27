@@ -1,8 +1,9 @@
 from datasets import load_dataset  , Dataset  
-from BERT_SUPPORT import split_train_val_test ,  extract_and_process_data , create_mapping , TrainingArguments , BERT_TOKENIZER ,collator  , compute_metrics
+from BERT_SUPPORT import split_train_val_test ,  extract_and_process_data , create_mapping , TrainingArguments , BERT_TOKENIZER ,collator  , compute_metrics, clf_accuracy_test , skeleton
 from transformers import  AutoModelForSequenceClassification   , Trainer , pipeline 
 from config import MODEL_NAME ,split_values , OUTPUT_DIR # where the weights are saved 
 data_set = load_dataset("bitext/Bitext-customer-support-llm-chatbot-training-dataset")
+from collections import Counter 
 
 # the data set has 2 dictionary inside 
 # the train data set and the test data set 
@@ -10,6 +11,7 @@ data_set = load_dataset("bitext/Bitext-customer-support-llm-chatbot-training-dat
 
 raw_train , raw_val , raw_test = split_train_val_test(data_set["train"],split_values)
 label_mapping = create_mapping(raw_train)
+id2_label = {i:n for n,i in label_mapping.items()}
 
 train_tokenized, train_labels,  train_raw_instructions = extract_and_process_data(raw_train, label_mapping)
 val_tokenized,   val_labels,    val_raw_instructoins   = extract_and_process_data(raw_val,   label_mapping)
@@ -45,12 +47,28 @@ trainer = Trainer (
     data_collator = collator , 
     compute_metrics = compute_metrics
 ) 
+
+
+#clf_accuracy_test()  for now we comment this 
+
+
+
+# train save pipeline 
+# training the model : 
 #trainer.train() 
+
+#saving the model 
+#model.config.label2id = label_mapping
+#model.config.id2label = id2_label 
+#model.save_pretrained(OUTPUT_DIR)
+
+
 
 # manually testing the pipeline 
 
+skeletons = [skeleton(instruction) for instruction in train_raw_instructions ]
 
-clf = pipeline("text-classification" , model = OUTPUT_DIR + "/checkpoint-3528" , tokenizer = BERT_TOKENIZER ) 
-result = clf("I want to cancel my super very super long order that was not cancelled last week even though I bought it ")
-print(result)
+templates_count = len(set(skeletons)) 
 
+print(f"The total number of unique skeletons is: {templates_count}")
+print(f"The Most common tempaltes out of the 26 k Rows of data:{Counter(skeletons).most_common(5)}")
