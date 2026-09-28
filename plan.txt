@@ -105,3 +105,281 @@ Current Progress
  Project 3 — Object Detection Fine-Tuning
  Project 4 — LoRA Fine-Tuning an LLM
  Project 5 — Multi-Task Fine-Tuning & Serving Pipeline
+
+ Project 3 — Object Detection Fine-Tuning (YOLO / Ultralytics)
+What you build: A retail shelf detector — detect products / shelf segments in images. Fine-tune a pretrained YOLOv8 on a custom annotated dataset, evaluate with mAP, export to ONNX.
+
+Skills unlocked:
+
+Classification vs detection vs segmentation
+
+Annotation formats: YOLO txt, COCO JSON, Pascal VOC XML
+
+Bounding boxes: (x_center, y_center, w, h) normalized
+
+IoU (Intersection over Union)
+
+mAP@50, mAP@50-95, precision-recall curves
+
+Anchor-free detection heads (YOLOv8 is anchor-free)
+
+Data augmentation with Albumentations
+
+Ultralytics API: YOLO(), .train(), .val(), .predict()
+
+ONNX export for deployment
+
+Step-by-step
+Step 1 — Understand the task shift
+
+Classification: one label per image. Detection: N boxes + N labels per image, variable N.
+
+Learn the three annotation formats. YOLO format is one .txt per image with rows class x_center y_center w h, all normalized 0–1.
+
+Learn what IoU means: overlap between predicted box and ground-truth box. IoU ≥ 0.5 usually counts as a "hit."
+
+Step 2 — Get a dataset
+
+Pick a retail/shelf dataset from Roboflow Universe.
+
+Export in YOLO format — Roboflow gives you images/, labels/, and data.yaml automatically.
+
+Inspect the folder structure: images/train, images/val, labels/train, labels/val, data.yaml.
+
+Open one .txt label file and manually decode a row back to pixel coordinates, to confirm you understand it.
+
+Step 3 — Baseline run (no changes)
+
+model = YOLO("yolov8n.pt") — pretrained on COCO.
+
+model.train(data="data.yaml", epochs=50, imgsz=640) — the built-in defaults.
+
+Watch it train. Note the mAP numbers printed per epoch.
+
+Run model.val() to get final mAP50 and mAP50-95.
+
+Step 4 — Understand the metrics
+
+mAP50 = mean Average Precision at IoU 0.5.
+
+mAP50-95 = averaged over IoU 0.5 → 0.95 (stricter).
+
+Read the precision-recall curve that YOLO saves to runs/detect/train/.
+
+Compare mAP vs your BERT accuracy — explain why they aren't directly comparable.
+
+Step 5 — Improve the model
+
+Try yolov8s.pt or yolov8m.pt (bigger backbone).
+
+Increase epochs, tweak imgsz, adjust batch size to fit VRAM.
+
+Add augmentation: hsv_h, hsv_s, flipud, fliplr — or Albumentations for custom pipelines.
+
+Compare runs: does bigger help? Does augmentation help?
+
+Step 6 — Inference + export
+
+model.predict("some_shelf.jpg") — view boxes.
+
+model.export(format="onnx") — get a deployable .onnx file.
+
+Load the ONNX with onnxruntime and run a prediction — proves deployment-readiness.
+
+Step 7 — Write-up
+
+README section: dataset, model, mAP, ONNX export, how to run.
+
+Project 4 — LoRA Fine-Tuning a Large Language Model
+What you build: Fine-tune a 7B LLM (Mistral or Llama) on a custom instruction dataset using LoRA/QLoRA — on a single GPU, using 4-bit quantization.
+
+Skills unlocked:
+
+Why full fine-tuning a 7B is impossible on consumer GPUs (memory math)
+
+LoRA: train small low-rank adapters instead of the full weight matrix
+
+QLoRA: 4-bit quantize the base model + LoRA on top
+
+bitsandbytes for 4-bit / 8-bit quantization
+
+peft library: LoraConfig, get_peft_model
+
+trl library: SFTTrainer for supervised fine-tuning
+
+Instruction formats: Alpaca, ShareGPT
+
+Gradient checkpointing, mixed precision, memory management
+
+Merging LoRA adapters back into the base model
+
+Evaluation: perplexity, manual inspection
+
+Step-by-step
+Step 1 — The problem LoRA solves
+
+Full fine-tune of a 7B model = 7B params × fp32 = ~28GB weights + gradients + optimizer states → 100GB+.
+
+LoRA: freeze the base model, train two small matrices A and B per layer whose product approximates the weight update.
+
+QLoRA: additionally quantize the frozen base to 4-bit, cutting memory 8×.
+
+Step 2 — Environment
+
+Install transformers, peft, trl, bitsandbytes, accelerate, datasets.
+
+Verify CUDA and bitsandbytes work: import bitsandbytes.
+
+Check VRAM: 7B QLoRA needs ~10–12GB; your 5070 has enough for a small model.
+
+Step 3 — Pick a base model and dataset
+
+Base: mistralai/Mistral-7B-v0.1 or meta-llama/Llama-3.1-8B (gated — need HF token) or a smaller model like TinyLlama-1.1B for a first pass.
+
+Dataset: an instruction dataset — e.g. tatsu-lab/alpaca or a domain set. Format it as {"instruction": ..., "input": ..., "output": ...}.
+
+Step 4 — Load model in 4-bit
+
+BitsAndBytesConfig(load_in_4bit=True, bnb_4bit_quant_type="nf4", bnb_4bit_compute_dtype=torch.bfloat16).
+
+AutoModelForCausalLM.from_pretrained(model_name, quantization_config=...).
+
+Confirm memory footprint in nvidia-smi.
+
+Step 5 — Attach LoRA adapters
+
+LoraConfig(r=8, lora_alpha=16, target_modules=["q_proj","v_proj"], lora_dropout=0.05, task_type="CAUSAL_LM").
+
+model = get_peft_model(model, lora_config).
+
+model.print_trainable_parameters() — should show ~0.1% of params trainable.
+
+Step 6 — Train with SFTTrainer
+
+TrainingArguments: batch size 1–4, gradient accumulation, lr 2e-4, epochs 1–3, gradient_checkpointing=True, fp16/bf16.
+
+SFTTrainer(model, train_dataset, args, peft_config, formatting_func).
+
+trainer.train(). Watch loss.
+
+Step 7 — Evaluate
+
+Perplexity on a held-out set (if you have one).
+
+Manual: generate responses to 10 prompts, judge quality.
+
+Compare to base model's responses — did LoRA change behavior?
+
+Step 8 — Merge and save
+
+model = model.merge_and_unload() — folds LoRA weights into base.
+
+model.save_pretrained("merged_model/").
+
+Or keep the adapter separate (smaller, ~10MB) — both are valid deployment choices.
+
+Step 9 — Write-up
+
+README section: base model, LoRA config, dataset, memory, qualitative results.
+
+Project 5 — Multi-Task Fine-Tuning & Model Serving Pipeline
+What you build: Take one model (or two), package it behind a FastAPI endpoint, containerize with Docker, add monitoring, version the model, and simulate A/B testing.
+
+Skills unlocked:
+
+Multi-task learning: one encoder, multiple heads, shared representations
+
+Model packaging (TorchServe / Triton / BentoML overview; FastAPI for hands-on)
+
+REST API design for ML
+
+Docker containerization
+
+Model registry (MLflow or DVC)
+
+A/B testing, canary deployment
+
+Monitoring: data drift, prediction drift, latency
+
+CI/CD for ML (GitHub Actions)
+
+Load testing
+
+Step-by-step
+Step 1 — Multi-task model
+
+Take a pretrained encoder (BERT or ResNet).
+
+Add two heads: e.g. intent classification + sentiment, or object class + pose.
+
+Train jointly: loss = loss_task1 + loss_task2.
+
+Compare to two separate single-task models — does shared representation help?
+
+Step 2 — Package the model
+
+Save model + tokenizer + label mappings in a versioned folder.
+
+Write a predict() function that loads the model once and serves it in-memory.
+
+Step 3 — FastAPI endpoint
+
+POST /predict accepts JSON {"text": "..."} → returns {"intent": ..., "confidence": ...}.
+
+GET /health returns {"status": "ok"}.
+
+Add request validation with Pydantic.
+
+Test with curl and with the auto-generated /docs.
+
+Step 4 — Containerize
+
+Write a Dockerfile: base image python:3.11-slim, install deps, copy code + model, run uvicorn.
+
+docker build -t intent-api .
+
+docker run -p 8000:8000 intent-api
+
+Test the endpoint from outside the container.
+
+Step 5 — Model versioning
+
+Initialize MLflow (or DVC) tracking.
+
+Log the model with a version tag and metrics.
+
+Show loading a specific version via the registry.
+
+Step 6 — Monitoring
+
+Log every request: input text, prediction, confidence, latency.
+
+Compute drift: is the distribution of incoming inputs shifting vs training data?
+
+Alert if average confidence drops below a threshold (a proxy for drift).
+
+Step 7 — A/B testing / canary
+
+Serve two model versions behind the same endpoint (e.g. 90% v1, 10% v2).
+
+Log which version served each request.
+
+Compare accuracy/latency after enough traffic — promote the winner.
+
+Step 8 — CI/CD
+
+GitHub Actions workflow: on push, run tests, build Docker image, push to registry.
+
+Optionally auto-deploy to a staging environment.
+
+Step 9 — Write-up
+
+README section: architecture diagram, endpoint examples, how to run locally and in Docker, MLflow/DVC versioning.
+
+Updated Progress Tracker
+#	Project	Focus	Stack	Status
+1	Satellite image classification	Transfer learning on a CNN	ResNet-18 · PyTorch	✅ 93%
+2	Text classification	Fine-tuning a transformer encoder	BERT · Hugging Face	✅ 99.7% val / 73% real-world
+3	Object detection	Detection fine-tuning	YOLO · Ultralytics	⬜ Planned
+4	LLM adaptation	Parameter-efficient fine-tuning	LoRA · PEFT	⬜ Planned
+5	Multi-task model + serving	Multi-task fine-tuning and deployment	FastAPI · Docker · MLflow	⬜ Planned
