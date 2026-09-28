@@ -1,5 +1,5 @@
 from numpy import random  
-from config import  MODEL_NAME , NUM_EPOCHS , BATCH_SIZE  , LEARNING_RATE , OUTPUT_DIR 
+from config import  MODEL_NAME , NUM_EPOCHS , BATCH_SIZE  , LEARNING_RATE , OUTPUT_DIR , SAMPLE_TEST 
 from transformers import  TrainingArguments , AutoTokenizer , AutoModelForSequenceClassification  , DataCollatorWithPadding ,pipeline
 import numpy as np 
 from sklearn.metrics import accuracy_score , f1_score 
@@ -77,18 +77,7 @@ def compute_metrics(evaluation_prediction) :
 
 
 def clf_accuracy_test() :
-    test_inputs = [
-    ("my package never showed up and I want my money back", "get_refund"),
-    ("stop sending me emails and delete my account", "delete_account"),
-    ("your service is terrible, connect me to a manager", "contact_human_agent"),
-    ("I was charged twice, fix my billing", "payment_issue"),
-    ("change the address on my order, I moved", "change_shipping_address"),
-    ("I forgot my password and cannot log in", "recover_password"),
-    ("how long until my parcel reaches me", "delivery_period"),
-    ("I want to return this and get my cash back", "get_refund"),
-    ("set up a new delivery address for me", "set_up_shipping_address"),
-    ("I need to speak with a support person", "contact_human_agent"),
-    ] 
+    test_inputs = SAMPLE_TEST
     correct = 0 
     wrong = 0 
     confidence = 0 
@@ -110,3 +99,5 @@ def clf_accuracy_test() :
 def skeleton(s):
     s = re.sub(r"\{\{.*?\}\}", "", s.lower())
     return re.sub(r"[^a-z ]", "", s).strip()
+
+

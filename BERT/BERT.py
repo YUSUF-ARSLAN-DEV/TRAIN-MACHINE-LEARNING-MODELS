@@ -66,9 +66,5 @@ trainer = Trainer (
 
 # manually testing the pipeline 
 
-skeletons = [skeleton(instruction) for instruction in train_raw_instructions ]
+clf_accuracy_test()
 
-templates_count = len(set(skeletons)) 
-
-print(f"The total number of unique skeletons is: {templates_count}")
-print(f"The Most common tempaltes out of the 26 k Rows of data:{Counter(skeletons).most_common(5)}")
