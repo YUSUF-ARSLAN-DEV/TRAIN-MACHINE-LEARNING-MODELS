@@ -1,0 +1,13 @@
+train: ../train/images
+val: ../valid/images
+test: ../test/images
+
+nc: 7
+names: ['ariel', 'boost', 'ghee', 'harpic', 'oil', 'pickle', 'tea']
+
+roboflow:
+  workspace: yusuf-arslan-ktjld
+  project: robust-shelf-monitoring-mieaq-f8yuv
+  version: 1
+  license: CC BY 4.0
+  url: https://app.roboflow.com/yusuf-arslan-ktjld/robust-shelf-monitoring-mieaq-f8yuv/1
