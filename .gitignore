@@ -9,3 +9,6 @@ webapp/frontend/dist/
 webapp/backend/__pycache__/
 webapp/backend/app/__pycache__/
 YOLO/YOLO_SHELF_IMAGE_DATA_SET/
+YOLO/train/
+YOLO/valid/
+YOLO/test/

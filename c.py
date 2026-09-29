@@ -1,5 +1,2 @@
-from datasets import load_dataset 
-data_set = load_dataset("bitext/Bitext-customer-support-llm-chatbot-training-dataset")
-
-print(data_set["train"].column_names)
-print(data_set["train"][0])
+import os
+print(os.path.exists(r"C:\Users\aonli\Desktop\INTERNSHIP PROJECTS\Independent Learning\TRAIN MACHINE LEARNING MODELS\YOLO\test\images\IMG_20220428_120046_jpg.rf.df61b58273986c6bbe6452e356b4bfd9.jpg"))
