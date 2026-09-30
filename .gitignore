@@ -12,3 +12,7 @@ YOLO/YOLO_SHELF_IMAGE_DATA_SET/
 YOLO/train/
 YOLO/valid/
 YOLO/test/
+
+*.log
+*.pyc
+YOLO/results_*

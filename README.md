@@ -36,7 +36,7 @@ Fine-tuned a pre-trained **ResNet-18** to classify Sentinel-2 satellite imagery 
 - **Hardware:** NVIDIA RTX 5070 (CUDA).
 - **Result:** **~93% test accuracy.**
 
-Code: [`RESNET/SOURCE_CODE/Resnet18.py`](./RESNET/SOURCE_CODE/Resnet18.py) — training and evaluation loops.
+Code: [`RESNET/src/Resnet18.py`](./RESNET/src/Resnet18.py) — training and evaluation loops.
 
 > ⚠️ The script does not yet call `torch.save()`, so no weights exist for the web app to load.
 
@@ -46,7 +46,7 @@ Code: [`RESNET/SOURCE_CODE/Resnet18.py`](./RESNET/SOURCE_CODE/Resnet18.py) — t
 python -m venv venv
 venv\Scripts\activate          # Windows
 pip install torch torchvision pillow
-python RESNET/SOURCE_CODE/Resnet18.py   # downloads EuroSAT on first run
+python RESNET/src/Resnet18.py   # downloads EuroSAT on first run
 ```
 
 ---
@@ -123,7 +123,7 @@ Which models appear is driven by `webapp/backend/app/catalog.py`; see
 | Model | State |
 |---|---|
 | BERT intent classifier | ✅ live |
-| ResNet-18 / EuroSAT | UI built; backend returns 503 until weights are saved (and the service's weights path is corrected to `RESNET/SOURCE_CODE/`) |
+| ResNet-18 / EuroSAT | UI built; backend returns 503 until weights are saved (and the service's weights path is corrected to `RESNET/src/`) |
 | YOLO | next — after ONNX export |
 | LoRA / Multi-task | placeholders |
 
@@ -158,7 +158,7 @@ Details in [`plan.txt`](./plan.txt).
 
 ```
 .
-├── RESNET/SOURCE_CODE/Resnet18.py   # Project 1 — training + evaluation
+├── RESNET/src/Resnet18.py   # Project 1 — training + evaluation
 ├── BERT/                            # Project 2 — BERT.py, BERT_SUPPORT.py, config.py
 ├── YOLO/                            # Project 3 — yolo.py, data.yaml
 ├── runs/detect/train-6/             # Project 3 — trained YOLO run + best.pt

@@ -116,7 +116,7 @@ Step 6 — [BY HAND] Test end to end in the browser.
 Web app status
  Scaffold: catalog, models router, health endpoint, Home + ModelPage, StatusBadge/ScoreBar/ModelHeader components ✅
  BERT intent classifier — service, router, panel ✅ (loads BERT/bert_intent_model)
- ResNet-18 — service, router, panel written, but backend returns 503: Resnet18.py never calls torch.save(), and the service looks for SOURCE_CODE/resnet18_eurosat.pth (wrong folder — the code is in RESNET/SOURCE_CODE/). ⬜ BLOCKED
+ ResNet-18 — service, router, panel written, but backend returns 503: Resnet18.py never calls torch.save(), and the service looks for SOURCE_CODE/resnet18_eurosat.pth (wrong folder — the code is in RESNET/src/). ⬜ BLOCKED
  YOLO detection — needs ONNX/best.pt service, bounding-box overlay panel ⬜ (do after Project 3 ONNX export)
  LoRA LLM — text-generation panel ⬜ (after Project 4)
  Multi-task — ⬜ (after Project 5)
@@ -422,7 +422,7 @@ Step 9 — Write-up
 README section: architecture diagram, endpoint examples, how to run locally and in Docker, MLflow/DVC versioning.
 
 Remaining Roadmap (ordered — where we continue from)
-1. Web App / ResNet fix [BY HAND]: add torch.save() to Resnet18.py, retrain, fix weights path in resnet_service.py (RESNET/SOURCE_CODE/), confirm the ResNet page works.
+1. Web App / ResNet fix [BY HAND]: add torch.save() to Resnet18.py, retrain, fix weights path in resnet_service.py (RESNET/src/), confirm the ResNet page works.
 2. Project 3 finish [BY HAND]: yolov8s/m or augmentation comparison -> ONNX export -> onnxruntime prediction -> mAP explanation (vs BERT accuracy) -> write-up.
 3. Web App / YOLO [service BY HAND, UI DELEGATE]: serve best.pt or ONNX, return boxes + confidence, add overlay panel.
 4. Optional Project 1/2 depth [BY HAND, high interview value]: BERT grouped split by template (fixes the 73% vs 99.7% gap), W&B tracking, confusion matrix + classification report for ResNet.
