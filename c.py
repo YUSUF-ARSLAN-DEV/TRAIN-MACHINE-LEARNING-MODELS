@@ -1,2 +1,2 @@
 import os
-print(os.path.exists(r"C:\Users\aonli\Desktop\INTERNSHIP PROJECTS\Independent Learning\TRAIN MACHINE LEARNING MODELS\YOLO\test\images\IMG_20220428_120046_jpg.rf.df61b58273986c6bbe6452e356b4bfd9.jpg"))
+r"C:\...\YOLO\test\images\IMG_20220428_120046_jpg.rf.df61b58273986c6bbe6452e356b4bfd9.jpg"

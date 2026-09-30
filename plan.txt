@@ -92,6 +92,50 @@ CI/CD for ML (GitHub Actions + model registry)
 
 Why last: This ties the ML side to the Ops side. You've trained models — now you ship them. This is what makes you an MLOps engineer, not just an ML engineer.
 
+Web App — Showcase App (runs alongside Projects 1-5)
+What you build: A FastAPI backend + React (Vite) frontend where each finished project gets its own page and can be tried live in the browser. Lives in webapp/. Which models appear is driven by webapp/backend/app/catalog.py — finishing a project means flipping its entry from "planned" to "ready" and adding a router + service.
+
+Skills unlocked:
+
+FastAPI routers and services, CORS, file uploads
+Loading a trained model once at startup and serving it in memory
+Catalog-driven UI (frontend fetches GET /api/models, nothing hardcoded)
+React + Vite: pages, panels, API client
+Returning boxes / confidence scores in a UI-friendly shape
+
+This is also the on-ramp to Project 5 — the serving concepts (predict(), /health, Pydantic validation) are practiced here first, then hardened in Project 5 (Docker, MLflow, monitoring, CI/CD).
+
+Step-by-step (per model)
+Step 1 — [BY HAND] Save the trained weights in a known location (a model that is not saved cannot be served).
+Step 2 — [BY HAND] Write a service (webapp/backend/app/services/<model>_service.py) that loads the model once and exposes predict().
+Step 3 — [BY HAND, first time; then delegate] Write a router (webapp/backend/app/routers/<model>.py) with POST /api/<model>/predict and register it in main.py.
+Step 4 — [DELEGATE] Flip the catalog entry to status "ready" and set its endpoint.
+Step 5 — [DELEGATE] Add a frontend panel (webapp/frontend/src/pages/panels/<Model>Panel.jsx) and wire it into ModelPage.jsx.
+Step 6 — [BY HAND] Test end to end in the browser.
+
+Web app status
+ Scaffold: catalog, models router, health endpoint, Home + ModelPage, StatusBadge/ScoreBar/ModelHeader components ✅
+ BERT intent classifier — service, router, panel ✅ (loads BERT/bert_intent_model)
+ ResNet-18 — service, router, panel written, but backend returns 503: Resnet18.py never calls torch.save(), and the service looks for SOURCE_CODE/resnet18_eurosat.pth (wrong folder — the code is in RESNET/SOURCE_CODE/). ⬜ BLOCKED
+ YOLO detection — needs ONNX/best.pt service, bounding-box overlay panel ⬜ (do after Project 3 ONNX export)
+ LoRA LLM — text-generation panel ⬜ (after Project 4)
+ Multi-task — ⬜ (after Project 5)
+
+Working Principle — Build Career Value (MLOps Engineer)
+Goal is to become a valuable MLOps engineer, so effort goes where interviews and real jobs test you.
+
+BY HAND (you write it; Claude only reviews / explains after you try):
+- All ML and MLOps core: training loops, saving/loading weights, evaluation and metrics, experiment comparison, ONNX export + onnxruntime verification, LoRA/QLoRA, FastAPI inference endpoint, Dockerfile, MLflow/DVC, monitoring and drift, A/B routing, GitHub Actions CI/CD.
+- Debugging: read the error and the docs first. Claude explains what you got stuck on, not the fix up front.
+- Write-ups of results (what you found and why) in your own words.
+
+DELEGATE TO AI (plumbing, not a career skill):
+- React UI panels and styling, CORS/router boilerplate, README and plan formatting, repo cleanup.
+- Even here: you must be able to explain what was generated (line-by-line walkthrough after it is written).
+
+Working loop per task: try it yourself -> get stuck -> ask -> Claude reviews or explains -> you fix it -> you explain it back.
+Rule of thumb: if it would come up in an MLOps interview, write it yourself. If it is plumbing, delegate it.
+
 How We Work Through Each Project
 Concepts first (brief) — what are we doing and why
 Code walkthrough — every line explained, syntax taught explicitly
@@ -101,8 +145,9 @@ You extend it — add a feature that requires you to read docs
 Current Progress
  Pathway created
  Project 1 — Image Classification with Transfer Learning (93% accuracy) ✅
- Project 2 — Text Classification with Hugging Face ← NEXT
- Project 3 — Object Detection Fine-Tuning
+ Project 2 — Text Classification with Hugging Face ✅ (99.7% val / 73% real-world)
+ Project 3 — Object Detection Fine-Tuning — IN PROGRESS (trained, mAP50 0.991; ONNX export + write-up remaining)
+ Web App — Showcase App (FastAPI + React) — IN PROGRESS (BERT live; ResNet blocked on missing weights; YOLO next)
  Project 4 — LoRA Fine-Tuning an LLM
  Project 5 — Multi-Task Fine-Tuning & Serving Pipeline
 
@@ -168,7 +213,7 @@ Read the precision-recall curve that YOLO saves to runs/detect/train/.
 
 Compare mAP vs your BERT accuracy — explain why they aren't directly comparable.
 
-Step 5 — Improve the model
+Step 5 — Improve the model  [BY HAND]
 
 Try yolov8s.pt or yolov8m.pt (bigger backbone).
 
@@ -178,7 +223,7 @@ Add augmentation: hsv_h, hsv_s, flipud, fliplr — or Albumentations for custom 
 
 Compare runs: does bigger help? Does augmentation help?
 
-Step 6 — Inference + export
+Step 6 — Inference + export  [BY HAND — ONNX export and onnxruntime check are core MLOps]
 
 model.predict("some_shelf.jpg") — view boxes.
 
@@ -186,7 +231,7 @@ model.export(format="onnx") — get a deployable .onnx file.
 
 Load the ONNX with onnxruntime and run a prediction — proves deployment-readiness.
 
-Step 7 — Write-up
+Step 7 — Write-up  [BY HAND — your own words; Claude only formats]
 
 README section: dataset, model, mAP, ONNX export, how to run.
 
@@ -376,10 +421,20 @@ Step 9 — Write-up
 
 README section: architecture diagram, endpoint examples, how to run locally and in Docker, MLflow/DVC versioning.
 
+Remaining Roadmap (ordered — where we continue from)
+1. Web App / ResNet fix [BY HAND]: add torch.save() to Resnet18.py, retrain, fix weights path in resnet_service.py (RESNET/SOURCE_CODE/), confirm the ResNet page works.
+2. Project 3 finish [BY HAND]: yolov8s/m or augmentation comparison -> ONNX export -> onnxruntime prediction -> mAP explanation (vs BERT accuracy) -> write-up.
+3. Web App / YOLO [service BY HAND, UI DELEGATE]: serve best.pt or ONNX, return boxes + confidence, add overlay panel.
+4. Optional Project 1/2 depth [BY HAND, high interview value]: BERT grouped split by template (fixes the 73% vs 99.7% gap), W&B tracking, confusion matrix + classification report for ResNet.
+5. Project 4 LoRA [ALL BY HAND]: QLoRA on a small model first (TinyLlama), then scale up; merge adapters; compare to base model.
+6. Project 5 Serving + Ops [ALL BY HAND — this is the MLOps core]: multi-task model, FastAPI /predict + /health, Dockerfile, MLflow registry, request logging + drift alert, A/B routing, GitHub Actions. Reuse the web app as a client, do not rebuild UI.
+7. Portfolio pass [DELEGATE formatting]: architecture diagram, README polish, repo cleanup (untrack __pycache__, logs, duplicate weights, runs/).
+
 Updated Progress Tracker
 #	Project	Focus	Stack	Status
 1	Satellite image classification	Transfer learning on a CNN	ResNet-18 · PyTorch	✅ 93%
 2	Text classification	Fine-tuning a transformer encoder	BERT · Hugging Face	✅ 99.7% val / 73% real-world
-3	Object detection	Detection fine-tuning	YOLO · Ultralytics	⬜ Planned
+3	Object detection	Detection fine-tuning	YOLO · Ultralytics	🟡 Trained (mAP50 0.991 / mAP50-95 0.778); ONNX + write-up pending
 4	LLM adaptation	Parameter-efficient fine-tuning	LoRA · PEFT	⬜ Planned
 5	Multi-task model + serving	Multi-task fine-tuning and deployment	FastAPI · Docker · MLflow	⬜ Planned
+-	Showcase web app	Serve each model in a browser	FastAPI · React · Vite	🟡 BERT live; ResNet blocked on weights; YOLO next

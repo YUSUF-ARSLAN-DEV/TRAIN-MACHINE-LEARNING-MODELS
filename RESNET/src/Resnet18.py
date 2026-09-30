@@ -1,17 +1,16 @@
 from torchvision import models  , transforms ,datasets 
 from torch.utils.data import random_split , DataLoader 
 from torch import nn , optim 
+from config import device , mean , std ,num_epochs ,path
 import torch as torch 
 from PIL import Image 
 
 VisionModel  = models.resnet18(weights = models.ResNet18_Weights.DEFAULT ) 
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 VisionModel = VisionModel.to(device)
 
     
-mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
+
 # downloading the data set 
 
 transform  = transforms.Compose ([
@@ -78,6 +77,7 @@ def testing_loop() :
 
 if __name__ == '__main__':
     training_loop() 
+    torch.save(VisionModel.state_dict(),path ) 
     correct , total  = testing_loop() 
     print(f"The Accuracy of the model is:\n\n {correct/total}* 100")
          

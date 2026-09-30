@@ -16,7 +16,7 @@ from torchvision import models, transforms
 from PIL import Image
 
 REPO_ROOT = Path(__file__).resolve().parents[4]
-WEIGHTS_PATH = REPO_ROOT / "SOURCE_CODE" / "resnet18_eurosat.pth"
+WEIGHTS_PATH = REPO_ROOT / "RESNET" /"src"/ "resnet18_eurosat.pth"
 
 # Alphabetical order, matching torchvision.datasets.EuroSAT's ImageFolder class order
 CLASS_NAMES = [
