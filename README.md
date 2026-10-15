@@ -126,7 +126,7 @@ read the PR curve, compare a larger backbone (`yolov8s/m`) and augmentation, the
 
 Earlier experiment: a first run on a Roboflow shelf-monitoring set (7 Nigerian brands, mAP50 0.991)
 looked near-perfect but forced unseen brands into the nearest class (closed-set failure), which
-motivated switching to the broader Open Images data. Its artifacts are in `runs/detect/train-6/`.
+motivated switching to the broader Open Images data. Its plots and weights were removed from the repo to keep it small.
 
 Note: `YOLO/dataset/` is gitignored; re-run `image_download.py` and `convert_labels.py` to recreate it.
 
