@@ -1,10 +1,8 @@
 """Serves the EuroSAT ResNet-18 classifier.
 
-NOTE: SOURCE_CODE/Resnet18.py currently never calls torch.save(), so there
-are no trained weights on disk yet. This service is written so that once a
-weights file appears at WEIGHTS_PATH, inference works with no further
-backend changes. Until then it raises FileNotFoundError, which the router
-turns into a 503 the UI shows as "model not trained yet".
+Weights: RESNET/src/resnet18_eurosat.pth (saved by RESNET/src/Resnet18.py).
+If the file is missing, FileNotFoundError is raised and the router returns a 503
+that the UI shows as "model not trained yet".
 """
 
 from pathlib import Path

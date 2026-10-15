@@ -8,11 +8,28 @@ webapp/frontend/node_modules/
 webapp/frontend/dist/
 webapp/backend/__pycache__/
 webapp/backend/app/__pycache__/
-YOLO/YOLO_SHELF_IMAGE_DATA_SET/
-YOLO/train/
-YOLO/valid/
-YOLO/test/
 
 *.log
 *.pyc
 YOLO/results_*
+YOLO/TRAIN_IMAGES/
+YOLO/EXTERNAL_TEST_SAMPLES
+YOLO/dataset/
+RESNET/src/EUROSAT/
+teach
+teach.py
+YOLO/TEST_RUN_1/
+YOLO/openimages_v8n_e20/labels/
+YOLO/openimages_v8n_e20/images/
+
+# YOLO training/validation outputs: plots and sample images are regenerable.
+# Keep only results.csv, args.yaml and the best weights (best.pt / best.onnx).
+YOLO/INITIAL_WEIGHTS/
+YOLO/openimages_v8n_e20/*.jpg
+YOLO/openimages_v8n_e20/*.png
+YOLO/openimages_v8n_e20/weights/last.pt
+runs/detect/val/
+runs/detect/predict*/
+runs/detect/openimages_v8n_e20/
+runs/detect/*/*.jpg
+runs/detect/*/*.png

@@ -15,10 +15,10 @@ train, evaluate, and (later in the track) serve it. The full roadmap is in [`pla
 |---|---------|-------|-------|--------|
 | 1 | Satellite image classification | Transfer learning on a CNN | ResNet-18 · PyTorch | ✅ Complete — 93% accuracy |
 | 2 | Text classification | Fine-tuning a transformer encoder | BERT · Hugging Face | ✅ Complete — 99.7% val / ~73% real-world |
-| 3 | Object detection | Detection fine-tuning | YOLOv8 · Ultralytics | 🟡 Trained — mAP50 0.991; ONNX export + write-up pending |
+| 3 | Object detection | Detection fine-tuning | YOLOv8 · Ultralytics | 🟡 In progress — trained (mAP50 0.547) + ONNX export; NMS + write-up pending |
 | 4 | LLM adaptation | Parameter-efficient fine-tuning | LoRA · PEFT | ⬜ Planned |
 | 5 | Multi-task model + serving | Multi-task fine-tuning and deployment | FastAPI · Docker · MLflow | ⬜ Planned |
-| – | Showcase web app | Try each model in a browser | FastAPI · React · Vite | 🟡 BERT live; ResNet blocked on weights; YOLO next |
+| – | Showcase web app | Try each model in a browser | FastAPI · React · Vite | 🟡 BERT + ResNet live; YOLO next |
 
 ---
 
@@ -38,7 +38,7 @@ Fine-tuned a pre-trained **ResNet-18** to classify Sentinel-2 satellite imagery 
 
 Code: [`RESNET/src/Resnet18.py`](./RESNET/src/Resnet18.py) — training and evaluation loops.
 
-> ⚠️ The script does not yet call `torch.save()`, so no weights exist for the web app to load.
+Trained weights are saved to `RESNET/src/resnet18_eurosat.pth` and served by the web app.
 
 ### Run it
 
@@ -87,30 +87,48 @@ python BERT/BERT.py            # trains, saves, then runs interactive inference
 
 ---
 
-## Project 3 — YOLOv8 Retail Shelf Detection 🟡
+## Project 3 — YOLOv8 Object Detection on Open Images 🟡
 
-Fine-tuned a COCO-pretrained **YOLOv8n** to detect products on retail shelves.
+Fine-tuned a COCO-pretrained **YOLOv8n** to detect 8 generic retail/product classes, exported it
+to ONNX, and is hand-writing the inference post-processing.
 
-- **Dataset:** Roboflow Universe *robust-shelf-monitoring* (CC BY 4.0), YOLO format,
-  7 classes: `ariel, boost, ghee, harpic, oil, pickle, tea` — see [`YOLO/data.yaml`](./YOLO/data.yaml).
-- **Training:** `yolov8n.pt`, 50 epochs, imgsz 640, batch 16, default augmentation
-  (run saved in `runs/detect/train-6`; the earlier `train`…`train-5` folders are aborted attempts).
-- **Result (final epoch, validation):**
+- **Dataset:** Open Images V7 via FiftyOne, 8 classes: Bottle, Box, Tin can, Snack, Drink, Milk,
+  Personal care, Cosmetics (see [`YOLO/data.yaml`](./YOLO/data.yaml)). ~75k training images.
+  `YOLO/scripts/image_download.py` downloads; `YOLO/scripts/convert_labels.py` converts the raw
+  CSV annotations to YOLO `.txt` labels (`class x_center y_center w h`, normalized).
+- **Training:** `yolov8n.pt`, 20 epochs, imgsz 640, batch 48 (run: `YOLO/openimages_v8n_e20/`,
+  with PR/F1 curves, confusion matrix, `results.csv`, `weights/best.pt`).
+- **Result (test split):**
 
   | Precision | Recall | mAP50 | mAP50-95 |
   |---|---|---|---|
-  | 0.994 | 0.992 | **0.991** | **0.778** |
+  | 0.600 | 0.461 | **0.547** | **0.438** |
 
-  mAP50 is near-saturated (easy dataset); mAP50-95 is the more informative number.
-- **Saved artifacts:** `runs/detect/train-6/` has the PR/F1 curves, confusion matrix,
-  `results.csv` and `weights/best.pt`.
-- **Inference:** [`YOLO/yolo.py`](./YOLO/yolo.py) runs `best.pt` on a test image.
+- **ONNX export:** `best.pt` -> `best.onnx`, verified with `onnxruntime`: input `[1, 3, 640, 640]`,
+  output `[1, 12, 8400]`.
 
-**Still to do:** compare a larger backbone / augmentation tweaks, export to ONNX and verify with
-`onnxruntime`, and finish this write-up.
+### Manual ONNX post-processing ([`YOLO/scripts/yolo.py`](./YOLO/scripts/yolo.py))
 
-Note: the image dataset folders (`YOLO/train`, `valid`, `test`) are gitignored — download the
-dataset from Roboflow to retrain.
+The raw output is `[batch, 12, 8400]`: 8400 candidate predictions, each with 12 values
+(4 box + 8 class scores). Steps implemented so far:
+
+1. Resize to 640x640, scale to 0-1, transpose to channels-first, add a batch dimension.
+2. Take `outputs[0][0]` (first image) and transpose to `(8400, 12)`.
+3. Split: `boxes = pred[:, :4]` (center-format `x, y, w, h`), `scores = pred[:, 4:]` (8 classes).
+4. `argmax` / `max` over the classes gives each candidate's class id and confidence.
+5. Keep candidates with confidence > 0.25. On a test image this leaves ~80 boxes.
+
+Those ~80 boxes are mostly **duplicates of the same few objects**: class scores are independent
+sigmoids, so many neighbouring grid cells fire on one object. Removing them is the next step.
+
+**Still to do:** center -> corner box conversion, hand-written IoU + NMS, draw boxes on the image,
+read the PR curve, compare a larger backbone (`yolov8s/m`) and augmentation, then wire YOLO into the web app.
+
+Earlier experiment: a first run on a Roboflow shelf-monitoring set (7 Nigerian brands, mAP50 0.991)
+looked near-perfect but forced unseen brands into the nearest class (closed-set failure), which
+motivated switching to the broader Open Images data. Its artifacts are in `runs/detect/train-6/`.
+
+Note: `YOLO/dataset/` is gitignored; re-run `image_download.py` and `convert_labels.py` to recreate it.
 
 ---
 
@@ -123,8 +141,8 @@ Which models appear is driven by `webapp/backend/app/catalog.py`; see
 | Model | State |
 |---|---|
 | BERT intent classifier | ✅ live |
-| ResNet-18 / EuroSAT | UI built; backend returns 503 until weights are saved (and the service's weights path is corrected to `RESNET/src/`) |
-| YOLO | next — after ONNX export |
+| ResNet-18 / EuroSAT | ✅ live |
+| YOLO | next — after NMS + drawing works |
 | LoRA / Multi-task | placeholders |
 
 ---
@@ -160,8 +178,8 @@ Details in [`plan.txt`](./plan.txt).
 .
 ├── RESNET/src/Resnet18.py   # Project 1 — training + evaluation
 ├── BERT/                            # Project 2 — BERT.py, BERT_SUPPORT.py, config.py
-├── YOLO/                            # Project 3 — yolo.py, data.yaml
-├── runs/detect/train-6/             # Project 3 — trained YOLO run + best.pt
+├── YOLO/                            # Project 3 — data.yaml, scripts/ (download, convert, yolo.py)
+│   └── openimages_v8n_e20/          #   trained run, weights/best.pt + best.onnx
 ├── webapp/                          # Showcase app (backend/ FastAPI, frontend/ React)
 ├── plan.txt                         # Full roadmap and progress
 ├── EUROSAT/, venv/                  # dataset + virtualenv (gitignored)

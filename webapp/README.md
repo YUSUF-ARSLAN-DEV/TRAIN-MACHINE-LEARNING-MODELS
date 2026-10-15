@@ -11,7 +11,7 @@ there once it's trained and it gets its own nav entry and page automatically.
 | Model | Page | Backend |
 |---|---|---|
 | BERT intent classifier | live | loads `BERT/bert_intent_model` and serves real predictions |
-| ResNet-18 / EuroSAT | live UI, backend returns 503 | `SOURCE_CODE/Resnet18.py` never calls `torch.save`, so there are no weights yet. The service is already wired to `SOURCE_CODE/resnet18_eurosat.pth` — once that file exists, this works with no further changes. |
+| ResNet-18 / EuroSAT | live | loads `RESNET/src/resnet18_eurosat.pth` and serves real predictions |
 | YOLO / LoRA-PEFT / multi-task | "coming soon" placeholder | not built yet |
 
 ## Run it
