@@ -20,8 +20,9 @@ def CxCywh_to_xyxy(boxes):
     y2 = Cy +  (h/2) 
     return np.stack([x1,y1,x2,y2],axis=1 )  # this reutrns an array of N,4 Dimeniosn
 
-def iou(keepr , boxes) : 
-    
+def iou(keeper , boxes) : 
+    ix1 = np.maximum(keeper[0] , boxes[:,0] ) 
+    iy1 = np.maximum(keeper[0] , boxes[: , 1]) # getting the y1 value of the top left corner
 # creating the path to read the unfinte tuned weights 
 '''
 yolo_dir = Path(__file__).resolve().parent # just getting the parent so that we can move to that director 
