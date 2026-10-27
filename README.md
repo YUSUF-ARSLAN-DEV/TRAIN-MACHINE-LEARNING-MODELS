@@ -15,7 +15,7 @@ train, evaluate, and (later in the track) serve it.
 |---|---------|-------|-------|--------|
 | 1 | Satellite image classification | Transfer learning on a CNN | ResNet-18 · PyTorch | ✅ Complete — 93% accuracy |
 | 2 | Text classification | Fine-tuning a transformer encoder | BERT · Hugging Face | ✅ Complete — 99.7% val / ~73% real-world |
-| 3 | Object detection | Detection fine-tuning | YOLOv8 · Ultralytics | 🟡 In progress — trained (mAP50 0.547) + ONNX export; NMS + write-up pending |
+| 3 | Object detection | Detection fine-tuning | YOLOv8 · Ultralytics | 🟡 In progress — trained + ONNX export; IoU/NMS in progress, metrics to be re-measured |
 | 4 | LLM adaptation | Parameter-efficient fine-tuning | LoRA · PEFT | ⬜ Planned |
 | 5 | Multi-task model + serving | Multi-task fine-tuning and deployment | FastAPI · Docker · MLflow | ⬜ Planned |
 | – | Showcase web app | Try each model in a browser | FastAPI · React · Vite | 🟡 BERT + ResNet live; YOLO next |
@@ -116,11 +116,8 @@ to ONNX, and is hand-writing the inference post-processing.
   CSV annotations to YOLO `.txt` labels (`class x_center y_center w h`, normalized).
 - **Training:** `yolov8n.pt`, 20 epochs, imgsz 640, batch 48 (run: `YOLO/openimages_v8n_e20/`,
   with PR/F1 curves, confusion matrix, `results.csv`, `weights/best.pt`).
-- **Result (test split):**
-
-  | Precision | Recall | mAP50 | mAP50-95 |
-  |---|---|---|---|
-  | 0.600 | 0.461 | **0.547** | **0.438** |
+- **Result:** metrics to be re-measured on the test split. The training run was not seeded and has no
+  logged run yet, so no number is reported here until a reproducible evaluation exists.
 
 - **ONNX export:** `best.pt` -> `best.onnx`, verified with `onnxruntime`: input `[1, 3, 640, 640]`,
   output `[1, 12, 8400]`.
@@ -142,8 +139,8 @@ sigmoids, so many neighbouring grid cells fire on one object. Removing them is t
 **Still to do:** center -> corner box conversion, hand-written IoU + NMS, draw boxes on the image,
 read the PR curve, compare a larger backbone (`yolov8s/m`) and augmentation, then wire YOLO into the web app.
 
-Earlier experiment: a first run on a Roboflow shelf-monitoring set (7 Nigerian brands, mAP50 0.991)
-looked near-perfect but forced unseen brands into the nearest class (closed-set failure), which
+Earlier experiment: a first run on a Roboflow shelf-monitoring set (7 Nigerian brands)
+scored near-perfect on its own validation set but forced unseen brands into the nearest class (closed-set failure), which
 motivated switching to the broader Open Images data. Its plots and weights were removed from the repo to keep it small.
 
 Note: `YOLO/dataset/` is gitignored; re-run `image_download.py` and `convert_labels.py` to recreate it.
