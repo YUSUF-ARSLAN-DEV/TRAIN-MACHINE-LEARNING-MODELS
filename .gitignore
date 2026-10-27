@@ -33,3 +33,6 @@ runs/detect/predict*/
 runs/detect/openimages_v8n_e20/
 runs/detect/*/*.jpg
 runs/detect/*/*.png
+MP.*
+*.egg-info/
+records.txt

@@ -64,7 +64,7 @@ TrainingArguments = TrainingArguments (
     use_cpu = False 
  ) 
 
-BERT_TOKENIZER = AutoTokenizer.from_pretrained("bert-base-uncased")
+BERT_TOKENIZER = AutoTokenizer.from_pretrained(MODEL_NAME)
 collator = DataCollatorWithPadding(tokenizer = BERT_TOKENIZER )  
 
 def compute_metrics(evaluation_prediction) :

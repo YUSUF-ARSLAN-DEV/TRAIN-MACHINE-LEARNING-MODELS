@@ -1,13 +1,13 @@
 from datasets import load_dataset  , Dataset  
 from BERT_SUPPORT import split_train_val_test ,  extract_and_process_data , create_mapping , TrainingArguments , BERT_TOKENIZER ,collator  , compute_metrics, clf_accuracy_test , skeleton
 from transformers import  AutoModelForSequenceClassification   , Trainer , pipeline 
-from config import MODEL_NAME ,split_values , OUTPUT_DIR # where the weights are saved 
+from config import MODEL_NAME ,split_values , SEED,OUTPUT_DIR # where the weights are saved  
 data_set = load_dataset("bitext/Bitext-customer-support-llm-chatbot-training-dataset")
 from collections import Counter 
-
+from common.seed import set_seed 
 # the data set has 2 dictionary inside 
 # the train data set and the test data set 
-
+set_seed(SEED)
 
 raw_train , raw_val , raw_test = split_train_val_test(data_set["train"],split_values)
 label_mapping = create_mapping(raw_train)

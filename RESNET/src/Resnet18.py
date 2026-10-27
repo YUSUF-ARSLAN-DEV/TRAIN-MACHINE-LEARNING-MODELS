@@ -1,10 +1,13 @@
 from torchvision import models  , transforms ,datasets 
 from torch.utils.data import random_split , DataLoader 
 from torch import nn , optim 
-from config import device , mean , std ,num_epochs ,path
+from config import (device , mean , std ,num_epochs ,path , SEED , learning_rate ,
+                    transform_h , transform_w , data_root , train_ratio ,
+                    load_batch_size , load_workers , pin_memory_switch , train_shuffle)
 import torch as torch 
 from PIL import Image 
-
+from common.seed import set_seed 
+set_seed(SEED)
 VisionModel  = models.resnet18(weights = models.ResNet18_Weights.DEFAULT ) 
 
 VisionModel = VisionModel.to(device)
@@ -14,7 +17,7 @@ VisionModel = VisionModel.to(device)
 # downloading the data set 
 
 transform  = transforms.Compose ([
-    transforms.Resize((224,224)) , 
+    transforms.Resize((transform_h,transform_w)) ,
     transforms.ToTensor() , 
     transforms.Normalize(mean,std) 
 
@@ -22,28 +25,27 @@ transform  = transforms.Compose ([
 
 )
 
-EURO_DATA_SET = datasets.EuroSAT(root="EUROSAT" , download=True , transform=transform)
+EURO_DATA_SET = datasets.EuroSAT(root=data_root , download=True , transform=transform)
 
-train_set , test_set = random_split(EURO_DATA_SET , [0.8,0.2] )
+train_set , test_set = random_split(EURO_DATA_SET , [train_ratio , 1 - train_ratio] )
 
-train_loader = DataLoader(train_set , batch_size=32, shuffle = True,num_workers=4 , pin_memory=True)  # splits the data set into batches of 50 and loads them 
-test_loader = DataLoader(test_set,batch_size=32 , shuffle = False,num_workers = 4 , pin_memory=True   ) # the batches are fed to eh moddle different in each epoch 
+train_loader = DataLoader(train_set , batch_size=load_batch_size, shuffle = train_shuffle,num_workers=load_workers , pin_memory=pin_memory_switch)  # splits the data set into batches and loads them
+test_loader = DataLoader(test_set,batch_size=load_batch_size , shuffle = False,num_workers = load_workers , pin_memory=pin_memory_switch ) # the batches are fed to eh moddle different in each epoch
 
 
 # Freeze the prexisting layers , before we create a new final linaer layer with 512 inputs and 10 output neurons 
 
 for parameter in VisionModel.parameters() : 
-    parameter.requires_grad = False 
+    parameter.requires_grad = False  # we are freezing all layers ecept the last layer 
 
-VisionModel.fc = nn.Linear(512,10) 
+in_features = VisionModel.fc.in_features # read from the old fc layer before replacing it # getting the N of inputs 
+VisionModel.fc = nn.Linear(in_features,len(EURO_DATA_SET.classes))
 VisionModel = VisionModel.to(device) 
 
 entropy_loss = nn.CrossEntropyLoss() # entroppy_loss is a callable method now 
 
 
-optimizer = optim.Adam(VisionModel.fc.parameters() , lr=0.001)
-
-num_epochs = 10 
+optimizer = optim.Adam(VisionModel.fc.parameters() , lr=learning_rate)
 
 def training_loop() : 
     for i in range (0,num_epochs) :
@@ -58,7 +60,7 @@ def training_loop() :
             
 
 
-def testing_loop() : 
+def testing_loop() :  
     correct = 0  # n of correct images 
     total = 0 # total number of iamges 
 
@@ -79,6 +81,6 @@ if __name__ == '__main__':
     training_loop() 
     torch.save(VisionModel.state_dict(),path ) 
     correct , total  = testing_loop() 
-    print(f"The Accuracy of the model is:\n\n {correct/total}* 100")
+    print(f"The Accuracy of the model is:\n\n {(correct/total)* 100}%")
          
     
