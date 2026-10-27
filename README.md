@@ -5,7 +5,7 @@ projects, spanning computer vision, NLP, object detection, LLM adaptation, and m
 A FastAPI + React showcase web app lets each finished model be tried in the browser.
 
 Each project is a focused, end-to-end exercise: load real data, adapt a pre-trained model,
-train, evaluate, and (later in the track) serve it. The full roadmap is in [`plan.txt`](./plan.txt).
+train, evaluate, and (later in the track) serve it.
 
 ---
 
@@ -19,6 +19,34 @@ train, evaluate, and (later in the track) serve it. The full roadmap is in [`pla
 | 4 | LLM adaptation | Parameter-efficient fine-tuning | LoRA · PEFT | ⬜ Planned |
 | 5 | Multi-task model + serving | Multi-task fine-tuning and deployment | FastAPI · Docker · MLflow | ⬜ Planned |
 | – | Showcase web app | Try each model in a browser | FastAPI · React · Vite | 🟡 BERT + ResNet live; YOLO next |
+
+---
+
+## How to run
+
+Everything below runs from the **repo root**, in a virtual environment (the pins were compiled with Python 3.14;
+the pinned PyTorch is the CUDA 12.8 build, so training expects an NVIDIA GPU).
+
+```bash
+python -m venv venv
+venv\Scripts\activate             # Windows
+pip install -r requirements.txt   # exact pinned versions
+pip install -e .                  # makes the shared `common` package (set_seed) importable
+```
+
+| Project | Command | What it does |
+|---|---|---|
+| 1 · ResNet-18 | `python RESNET/src/Resnet18.py` | downloads EuroSAT on first run, trains, saves weights to `RESNET/src/`, prints test accuracy |
+| 2 · BERT | `python BERT/BERT.py` | trains, saves to `BERT/bert_intent_model/`, then runs interactive inference |
+| 3 · YOLO | `python YOLO/scripts/yolo.py` | runs the ONNX model on the test images and draws boxes into `YOLO/TEST_RUN_1/` (needs the dataset, see Project 3) |
+| Web app | see [`webapp/README.md`](./webapp/README.md) | FastAPI backend + React frontend |
+
+**Reproducibility:** every project calls `set_seed()` from `common/seed.py` with the seed in its `config.py`, and the
+dependency versions are pinned. Running ResNet twice gives the identical accuracy.
+Hyperparameters (epochs, batch size, learning rate, image size, split ratio) live in each project's `config.py`.
+
+**Changing dependencies:** edit `requirements.in` (direct dependencies only), then run
+`pip-compile requirements.in -o requirements.txt`. Never edit `requirements.txt` by hand.
 
 ---
 
@@ -40,14 +68,7 @@ Code: [`RESNET/src/Resnet18.py`](./RESNET/src/Resnet18.py) — training and eval
 
 Trained weights are saved to `RESNET/src/resnet18_eurosat.pth` and served by the web app.
 
-### Run it
-
-```bash
-python -m venv venv
-venv\Scripts\activate          # Windows
-pip install torch torchvision pillow
-python RESNET/src/Resnet18.py   # downloads EuroSAT on first run
-```
+See [How to run](#how-to-run).
 
 ---
 
@@ -80,10 +101,7 @@ Files: [`BERT/BERT.py`](./BERT/BERT.py) (main pipeline),
 [`BERT/BERT_SUPPORT.py`](./BERT/BERT_SUPPORT.py) (split, tokenize, mapping, metrics),
 [`BERT/config.py`](./BERT/config.py) (constants and hand-written test sentences).
 
-```bash
-pip install -r BERT/requirements.txt
-python BERT/BERT.py            # trains, saves, then runs interactive inference
-```
+See [How to run](#how-to-run).
 
 ---
 
@@ -153,8 +171,6 @@ Which models appear is driven by `webapp/backend/app/catalog.py`; see
 - **Project 5:** multi-task model, FastAPI endpoint, Docker, MLflow versioning, drift
   monitoring, A/B testing, CI/CD.
 
-Details in [`plan.txt`](./plan.txt).
-
 ---
 
 ## Tech Stack
@@ -181,7 +197,9 @@ Details in [`plan.txt`](./plan.txt).
 ├── YOLO/                            # Project 3 — data.yaml, scripts/ (download, convert, yolo.py)
 │   └── openimages_v8n_e20/          #   trained run, weights/best.pt + best.onnx
 ├── webapp/                          # Showcase app (backend/ FastAPI, frontend/ React)
-├── plan.txt                         # Full roadmap and progress
+├── common/seed.py                   # shared set_seed() used by all projects
+├── pyproject.toml, requirements.in/.txt  # packaging + pinned dependencies
+├── JOURNAL.md                       # what broke, why, how it was fixed
 ├── EUROSAT/, venv/                  # dataset + virtualenv (gitignored)
 └── README.md
 ```
