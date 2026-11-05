@@ -33,6 +33,15 @@ val_ds = Dataset.from_dict(
     }
 )
 
+test_ds = Dataset.from_dict(
+    {
+    "input_ids" : test_tokenized["input_ids"] ,
+    "attention_mask" : test_tokenized["attention_mask"] ,
+    "labels": test_labels 
+    }
+)
+
+
 
 model = AutoModelForSequenceClassification.from_pretrained(
     MODEL_NAME , 
@@ -49,22 +58,21 @@ trainer = Trainer (
 ) 
 
 
-#clf_accuracy_test()  for now we comment this 
+
 
 
 
 # train save pipeline 
 # training the model : 
-#trainer.train() 
+
+trainer.train() 
+print(trainer.evaluate(test_ds)) 
 
 #saving the model 
-#model.config.label2id = label_mapping
-#model.config.id2label = id2_label 
-#model.save_pretrained(OUTPUT_DIR)
+model.config.label2id = label_mapping
+model.config.id2label = id2_label 
+model.save_pretrained(OUTPUT_DIR)
 
+print("END OF TRAIN RUN \n\n\n\n\n\n\n\\n\n\n\n\n\n TESTING THE TRAIN  ")
 
-
-# manually testing the pipeline 
-
-clf_accuracy_test()
-
+clf_accuracy_test()  

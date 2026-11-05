@@ -14,7 +14,7 @@ train, evaluate, and (later in the track) serve it.
 | # | Project | Focus | Stack | Status |
 |---|---------|-------|-------|--------|
 | 1 | Satellite image classification | Transfer learning on a CNN | ResNet-18 · PyTorch | ✅ Complete — 93% accuracy |
-| 2 | Text classification | Fine-tuning a transformer encoder | BERT · Hugging Face | ✅ Complete — 99.7% val / ~73% real-world |
+| 2 | Text classification | Fine-tuning a transformer encoder | BERT · Hugging Face | ✅ Complete — 99.73% test (Bitext) / 75.0% hand-written |
 | 3 | Object detection | Detection fine-tuning | YOLOv8 · Ultralytics | 🟡 In progress — trained + ONNX export; IoU/NMS in progress, metrics to be re-measured |
 | 4 | LLM adaptation | Parameter-efficient fine-tuning | LoRA · PEFT | ⬜ Planned |
 | 5 | Multi-task model + serving | Multi-task fine-tuning and deployment | FastAPI · Docker · MLflow | ⬜ Planned |
@@ -88,14 +88,31 @@ Fine-tuned a pre-trained BERT encoder to classify customer-support messages by i
 - **Training:** `Trainer` + `TrainingArguments` — AdamW, lr 2e-5, 3 epochs, eval/save per epoch.
 - **Metrics:** accuracy + macro-F1 (sklearn).
 - **Hardware:** NVIDIA RTX 5070 (CUDA), ~2.5 min train.
-- **Result:** ~99.7% val accuracy / macro-F1. Trained weights are saved and reloadable via `pipeline`.
+- **Result (seed 42, 3 epochs):**
+  - Val (Bitext): 99.68% accuracy, 99.69% macro-F1
+  - Test (Bitext): 99.73% accuracy, 99.73% macro-F1
+  - Hand-written set: 75.0% (39/52), average confidence 87.5%
 
-**⚠️ Evaluation caveat.** The validation number is inflated by template leakage. Bitext
-instructions are template-generated near-duplicates, so a random row-level split scatters
-near-twin phrasings across train and val. On a manually written, non-template test of 50
-sentences, real-world accuracy dropped to **~73%** (avg confidence ~85%) — the honest estimate.
-The proper fix is a grouped split by template skeleton (strip `{{slots}}`, group by normalized
-phrasing, keep each group on one side). Left as future work.
+  Two separate runs gave identical metrics and predictions. Trained weights are saved and reloadable via `pipeline`.
+
+**⚠️ Evaluation caveat.** Exact-template leakage was checked and ruled out as the main cause
+of the gap between Bitext and the hand-written set. Using `skeleton()` (slots removed, lowercased,
+punctuation stripped, spaces collapsed), the 26,872 rows contain 23,478 distinct skeletons, and only
+16.0% of val rows (644/4030) and 15.6% of test rows (629/4032) share a skeleton with a train row.
+Even if all of those were free hits and the rest scored the hand-written 75%, val would be about
+79%, not 99.7%, so exact overlap can't explain the gap. This check doesn't count near-twins that
+differ by a word or two. The likelier cause is distribution shift: the model learned Bitext's
+template style and loses ground on everyday phrasing.
+
+**Miss analysis (13 misses on the hand-written set):**
+
+- Only one miss is a genuinely ambiguous label (support vs agent).
+- Whole intents fail: `change_order` 0/2 (→ `edit_account`), `track_order` 0/2 (→ `place_order`),
+  `payment_issue` 0/2.
+- Several misses are made with 0.84–0.99 confidence, so confidence alone can't flag errors.
+
+**Next step.** A grouped split isn't worth it with 23,478 distinct skeletons across 26,872 rows
+(87%); the next step is evaluating on more natural data (e.g. BANKING77).
 
 Files: [`BERT/BERT.py`](./BERT/BERT.py) (main pipeline),
 [`BERT/BERT_SUPPORT.py`](./BERT/BERT_SUPPORT.py) (split, tokenize, mapping, metrics),

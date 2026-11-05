@@ -97,7 +97,7 @@ def clf_accuracy_test() :
     print(f"The Average confidence of the model in each prediction is:{confidence/len(test_inputs)}")
 
 def skeleton(s):
-    s = re.sub(r"\{\{.*?\}\}", "", s.lower())
-    return re.sub(r"[^a-z ]", "", s).strip()
-
+    s = re.sub(r"\{\{.*?\}\}", "", s.lower())   # lowercase, drop {{slots}}
+    s = re.sub(r"[^a-z ]", "", s)               # keep only letters and spaces
+    return re.sub(r"\s+", " ", s).strip()       # collapse repeated spaces
 
