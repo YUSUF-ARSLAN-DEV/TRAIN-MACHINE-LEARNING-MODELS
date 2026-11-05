@@ -37,7 +37,7 @@ pip install -e .                  # makes the shared `common` package (set_seed)
 | Project | Command | What it does |
 |---|---|---|
 | 1 · ResNet-18 | `python RESNET/src/Resnet18.py` | downloads EuroSAT on first run, trains, saves weights to `RESNET/src/`, prints test accuracy |
-| 2 · BERT | `python BERT/BERT.py` | trains, saves to `BERT/bert_intent_model/`, then runs interactive inference |
+| 2 · BERT | `python BERT/BERT.py` | retrains the model (seed 42), saves to `BERT/bert_intent_model/`, then scores the 52 hand-written sentences with `clf_accuracy_test()` |
 | 3 · YOLO | `python YOLO/scripts/yolo.py` | runs the ONNX model on the test images and draws boxes into `YOLO/TEST_RUN_1/` (needs the dataset, see Project 3) |
 | Web app | see [`webapp/README.md`](./webapp/README.md) | FastAPI backend + React frontend |
 
@@ -93,7 +93,7 @@ Fine-tuned a pre-trained BERT encoder to classify customer-support messages by i
   - Test (Bitext): 99.73% accuracy, 99.73% macro-F1
   - Hand-written set: 75.0% (39/52), average confidence 87.5%
 
-  Two separate runs gave identical metrics and predictions. Trained weights are saved and reloadable via `pipeline`.
+  Two separate runs gave identical val metrics and hand-written predictions; test was only evaluated in the second run. Trained weights are saved and reloadable via `pipeline`.
 
 **⚠️ Evaluation caveat.** Exact-template leakage was checked and ruled out as the main cause
 of the gap between Bitext and the hand-written set. Using `skeleton()` (slots removed, lowercased,
